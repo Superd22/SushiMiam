@@ -12,14 +12,16 @@ import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-
 
 public class eye {
 	
@@ -33,31 +35,53 @@ public class eye {
 	static void main(String[] args) {
 	}
 	
-	private String convertImgToString(BufferedImage img, final String formatName) throws IOException {
-		  final ByteArrayOutputStream os = new ByteArrayOutputStream();
-		    try {
-		        ImageIO.write(img, formatName, Base64.getEncoder().wrap(os));
-		        return os.toString(StandardCharsets.ISO_8859_1.name());
-		    } catch (final IOException ioe) {
-		        throw new UncheckedIOException(ioe);
-		    }
+	private String convertImgToString(BufferedImage img) throws IOException {
+		
+		int width = img.getWidth();
+		int height = img.getHeight();
+		
+		int size = width*height;
+		
+		List<Integer> ints = new ArrayList<Integer>();
+		
+		for(int i=0;i<size;i++) {
+			int[] cords = this.getCoordFromInd(i, width);
+				ints.add(img.getRGB(cords[0], cords[1]));
+		}
+		
+		return ints.toString();
 	}
+	
+	
+	private int[] getCoordFromInd(int index, int width) {
+		int x = index % width;
+		int y = (index - x) / width;
+		
+		int[] cords = {x,y};
+		return cords;
+	}
+	
 	
 	public List<Integer> findsubImage(BufferedImage sub_img, BufferedImage big_img) throws IOException {
 		// Donc attention, ça va être la fête.
 		
-		//String sub = this.convertImgToString(sub_img,"png");
-		//String big = this.convertImgToString(big_img,"png");
 		
+		File outputfile = new File("testoutput.png");
+		ImageIO.write(sub_img, "png", outputfile);
 		
-		String big = "Ma bite est super longue comme dirait paul c'est cool de discuter avec lui car il a une putain de grosse teub sa mére la pute c'est génial.";
-		String sub = "bite";
+		String sub = this.convertImgToString(sub_img);
+		String big = this.convertImgToString(big_img);
+
+		
 		List<Integer> matches = new Vector<Integer>();
 		
 			// Tailles
-			int m = big.length();
-			int n = sub.length();	
-						
+			int big_w = big_img.getWidth();
+			int sub_w = sub_img.getWidth();
+			
+			int m = big_img.getHeight() * big_w;
+			int n = sub_img.getHeight() * sub_w;
+			
 			// Prépération tableau
 			Map<Character, Integer> rightMostIndexes = this.preprocessForBadCharacterShift(sub);
 			
@@ -77,6 +101,7 @@ public class eye {
 							
 							// Si sub est plus grand que big, on n'a pas de match
 							if(indexInText >= m) break;
+							
 							
 							// Si on a un mismatch, on shift
 							if (x != y) {
