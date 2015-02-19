@@ -1,9 +1,11 @@
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.Image.*;
+import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -35,21 +37,18 @@ public class eye {
 	static void main(String[] args) {
 	}
 	
-	private String convertImgToString(BufferedImage img) throws IOException {
+	private Color[] convertImgToArray(BufferedImage img) throws IOException {
 		
-		int width = img.getWidth();
-		int height = img.getHeight();
-		
-		int size = width*height;
-		
-		List<Integer> ints = new ArrayList<Integer>();
-		
-		for(int i=0;i<size;i++) {
-			int[] cords = this.getCoordFromInd(i, width);
-				ints.add(img.getRGB(cords[0], cords[1]));
-		}
-		
-		return ints.toString();
+		  int width = img.getWidth();
+	      int height = img.getHeight();
+	      Color[] result = new Color[height*width];
+
+	      for (int i = 0; i < height*width; i++) {
+	    	  	int[] cords = this.getCoordFromInd(i,width);
+	            result[i] = new Color( (int) img.getRGB(cords[0],cords[1]) , false);
+	      }
+	      
+	    return result;
 	}
 	
 	
@@ -61,81 +60,79 @@ public class eye {
 		return cords;
 	}
 	
-	
-	public List<Integer> findsubImage(BufferedImage sub_img, BufferedImage big_img) throws IOException {
-		// Donc attention, ça va être la fête.
-		
-		
-		File outputfile = new File("testoutput.png");
-		ImageIO.write(sub_img, "png", outputfile);
-		
-		String sub = this.convertImgToString(sub_img);
-		String big = this.convertImgToString(big_img);
-
-		
-		List<Integer> matches = new Vector<Integer>();
-		
-			// Tailles
-			int big_w = big_img.getWidth();
-			int sub_w = sub_img.getWidth();
-			
-			int m = big_img.getHeight() * big_w;
-			int n = sub_img.getHeight() * sub_w;
-			
-			// Prépération tableau
-			Map<Character, Integer> rightMostIndexes = this.preprocessForBadCharacterShift(sub);
-			
-			// Alignement
-			int alignedAt = 0;
-				while(alignedAt + (n - 1) < m ) {
-					// A chaque fois que l'on est aligné, on scan pour le pattern de droite à gauche
-					// a la position x du big et y du sub 
-						for(int indexInPattern = n - 1; indexInPattern >= 0; indexInPattern--) {
-							// On se décale;
-							
-
-							int indexInText = alignedAt + indexInPattern;
-							
-							char x = big.charAt(indexInText);
-							char y = sub.charAt(indexInPattern);
-							
-							// Si sub est plus grand que big, on n'a pas de match
-							if(indexInText >= m) break;
-							
-							
-							// Si on a un mismatch, on shift
-							if (x != y) {
-								// On récupère l'index du x 
-								Integer r = rightMostIndexes.get(x);
-								
-								// Si r n'est pas dans sub, on peut sauter toute la chaine
-								if (r == null) { alignedAt = indexInText + 1;}
-								else {
-									// Sinon, c'est on shift vers la droite jusqu'a l'occurence de r;
-									int shift = indexInText - (alignedAt + r);
-									alignedAt += shift > 0 ? shift : alignedAt + 1;
-								}
-								break;
-							}
-							// Si au contraire on match
-							else if (indexInPattern == 0) {
-								matches.add(alignedAt);
-								alignedAt++;
-							}
-						}
-					}
-		
-		return matches;	
+	private boolean isPixelClose(Color one, Color two) {
+		if( Math.abs(one.getBlue() - two.getBlue()) < 10 &&
+			Math.abs(one.getGreen() - two.getGreen()) < 10 &&
+			Math.abs(one.getRed() - two.getRed()) < 10) return true;
+		else return false;
 	}
 	
-	private Map<Character, Integer> preprocessForBadCharacterShift(String pattern) {
-		Map<Character, Integer> map = new HashMap<Character, Integer>();
-		for (int i = pattern.length() - 1; i >= 0; i--) {
-			char c = pattern.charAt(i);
-			if (!map.containsKey(c)) map.put(c, i);
+	public int[] findsubImage(BufferedImage sub_img, BufferedImage big_img) throws IOException {
+		
+		Color[] array_big = this.convertImgToArray(big_img);
+		Color[] array_sub = this.convertImgToArray(sub_img);
+		
+		int y_in_sub = 0;
+		int offset = 0;
+		int pos_in_big = 0;
+		boolean is_a_match = false;
+		boolean will_overflow = false;
+		for(pos_in_big=0;pos_in_big < array_big.length-1;pos_in_big++) {
+			if(will_overflow) break;
+			//System.out.println("big");
+			//System.out.println(pos_in_big);
+			for(int pos_in_sub=0; pos_in_sub < (array_sub.length);pos_in_sub++) {
+				
+				// Changement de ligne dans big si besoin
+				if ( (pos_in_sub > 0) && ( (pos_in_sub % sub_img.getWidth()) == 0) ) {
+					// On est à la fin d'une ligne
+					y_in_sub++;
+				}
+				is_a_match = true;
+
+				
+				// On compare chaque pixel un à un
+			
+				offset = (y_in_sub * (big_img.getWidth() - sub_img.getWidth()) ) + pos_in_sub ;
+				
+				if((offset+pos_in_big) > array_big.length-1) { 					
+					pos_in_sub = 0;
+					y_in_sub = 0;
+					offset = 0;
+					is_a_match = false;
+					will_overflow = true;
+					break;
+
+					
+				}
+				
+				// Si les pixels ne sont pas les mêmes, on s'arrête là et on passe au big pixel suivant
+				if (!this.isPixelClose(array_big[pos_in_big+offset],array_sub[pos_in_sub])) {
+					// On sort de la boucle
+					pos_in_sub = 0;
+					y_in_sub = 0;
+					offset = 0;
+					is_a_match = false;
+					break;
+				}
+				
+			}
+			
+			if (is_a_match) {
+				System.out.println("break match");
+				break;
+			}
+			
 		}
-		return map;
+		
+		if(is_a_match) {
+			return this.getCoordFromInd(pos_in_big, big_img.getWidth());
+		}
+		else return new int[]{-1 , -1};
+		
 	}
+	
+
 	
 	public BufferedImage takescreen() throws Exception{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -151,5 +148,24 @@ public class eye {
 		return shot;
 	}
 	
+	public Rectangle getPlayRegion(int[] cords) {
+		// cords contient les coordonées du main_logo
+		
+		// Aprés mesure on a :
+		int left_x_decal = -121;
+		int left_y_decal = -55;
+		
+		// d'où :
+		Rectangle gameRegion = new Rectangle( cords[0]+left_x_decal,cords[1]+left_y_decal, 640, 480);
+		
+		return gameRegion;
+	}
+	
+	public void mouseLeftClick(int x,int y) {
+		r.mouseMove(x, y);
+		int button = InputEvent.getMaskForButton(1);
+		r.mousePress(button);
+		r.mouseRelease(button);
+	}
 	
 }
