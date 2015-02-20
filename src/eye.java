@@ -61,9 +61,9 @@ public class eye {
 	}
 	
 	private boolean isPixelClose(Color one, Color two) {
-		if( Math.abs(one.getBlue() - two.getBlue()) < 10 &&
-			Math.abs(one.getGreen() - two.getGreen()) < 10 &&
-			Math.abs(one.getRed() - two.getRed()) < 10) return true;
+		if( Math.abs(one.getBlue() - two.getBlue()) < 20 &&
+			Math.abs(one.getGreen() - two.getGreen()) < 20 &&
+			Math.abs(one.getRed() - two.getRed()) < 20) return true;
 		else return false;
 	}
 	

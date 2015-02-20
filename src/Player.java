@@ -24,6 +24,7 @@ public class Player {
 	private int[] stocks = new int[]{5,10,10,10,5,5};
 	private int[][] sushiPosition = new int[][]{{42,330},{92,330},{42,388},{92,388},{42,446},{92,446}};
 	private int[][] sushiRecipe = new int[][]{{0,2,1,0,0,0},{0,1,1,1,0,0},{0,1,1,2,0,0}};
+	private boolean[] beingDone = new boolean[]{false,false,false,false,false,false};
 	
 	
 	private static Robot r;
@@ -85,36 +86,53 @@ public class Player {
 	
 	private void checkAllCustomers() throws IOException, InterruptedException {
 		for(int i=0;i<6;i++) {
-			if(checkACustomer(i)) {
 
-				System.out.println("Trouvé un customer numéro "+String.valueOf(i));
-				int d = checkSushi(i);
-				if(d > -1) {
-					// On a un sushi bada !
-					int nmrIng = 0;
-					for(int ingredient : this.sushiRecipe[d]) {
+
+			// Dans le cas où on a pas déjà envoyé le sushi
+			if(this.beingDone[i] == false) {
+				
+				// Si on a un client
+				if(checkACustomer(i)) {
+						int d = checkSushi(i);
 						
-						System.out.println("Il a un sushi numéro "+String.valueOf(d));
-						
-						// TO DO CHECK INGREDIENT
-						// FIN TO DO
-						int s = 0;
-						while(s < ingredient) {
-							cv.mouseLeftClick(this.sushiPosition[nmrIng][0] + this.gameRegion.x, this.sushiPosition[nmrIng][1] + this.gameRegion.y);
-							cv.mouseLeftClick(this.sushiPosition[nmrIng][0] + this.gameRegion.x, this.sushiPosition[nmrIng][1] + this.gameRegion.y);
-							Thread.sleep(300);
+						// Si on a un sushi
+						if(d > -1) {
+							int refIngredient = 0;
 							
-							s++;
+							// Pour chaque ingrédient
+							// (int) nbr  : contient le nombre 
+							// (int) refIngredient : contient la référence de l'ingrédient en cours
+							for(int nbr : this.sushiRecipe[d]) {
+								
+								
+								int s = 0;
+								while(s < nbr) {
+									cv.mouseLeftClick(this.sushiPosition[refIngredient][0] + this.gameRegion.x, this.sushiPosition[refIngredient][1] + this.gameRegion.y);
+									Thread.sleep(500);
+									
+									s++;
+								}
+								
+								
+								refIngredient++;
+							}
+							
+							// Puis Validation
+							Thread.sleep(1000);
+							cv.mouseLeftClick(this.gameRegion.x+210, 384 + this.gameRegion.y);
+							this.beingDone[i] = true;
+							Thread.sleep(2000);
 						}
-						
-						nmrIng++;
-					}
+				}
+			}
+			else {
+				// On a déjà envoyé un sushi à ce type
+				if(!this.checkACustomer(i)) {
+					// Si le type s'est tiré on ramasse son assiete
+					cv.mouseLeftClick(this.customerPosition[i][0] + this.gameRegion.x + 41, this.customerPosition[i][1] + this.gameRegion.y + 47);
+					this.beingDone[i] = false;
 					
-					// Puis Validation
-					cv.mouseLeftClick(this.gameRegion.x+210, 384 + this.gameRegion.y);
-					Thread.sleep(1800);
-					
-					
+					Thread.sleep(1000);
 				}
 			}
 		}
