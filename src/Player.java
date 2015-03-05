@@ -129,7 +129,7 @@ public class Player {
 		return need;
 	}
 	
-	private void handleStock(int i) {
+	private void handleStock(int i) throws InterruptedException {
 		ArrayList<Integer >need = this.checkStock(i);
 			if(need.size() > 0 ) {
 				for (int j = 0; j < need.size(); j++) {
