@@ -161,10 +161,12 @@ public class eye {
 		return gameRegion;
 	}
 	
-	public void mouseLeftClick(int x,int y) {
+	public void mouseLeftClick(int x,int y) throws InterruptedException {
 		r.mouseMove(x, y);
+		Thread.sleep(50);
 		int button = InputEvent.getMaskForButton(1);
 		r.mousePress(button);
+		Thread.sleep(50);
 		r.mouseRelease(button);
 	}
 	

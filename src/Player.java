@@ -17,16 +17,9 @@ public class Player {
 	private Rectangle gameRegion;
 	private int[] matches;
 	
-	private int[][] customerPosition = new int[][]{{41,151},{141,151},{241,151},{341,151},{441,151},{541,151}};
-	
-	
-	// 0 = Shrimp / 1 = Riz / 2 = Feuille Verte / 3 = fish egg / 4 = salmon / 5 = unagi 
-	private int[] stocks = new int[]{5,10,10,10,5,5};
-	private int[][] sushiPosition = new int[][]{{42,330},{92,330},{42,388},{92,388},{42,446},{92,446}};
-	private int[] hasBeenWaiting = new int[]{0,0,0,0,0,0};
-	private int[][] sushiRecipe = new int[][]{{0,2,1,0,0,0},{0,1,1,1,0,0},{0,1,1,2,0,0}};
-	private int[] previousState = new int[]{0,0,0,0,0,0};
-	
+	private Customer[] customers = new Customer[]{new Customer(0),new Customer(1),new Customer(2),new Customer(3),new Customer(4),new Customer(5)};
+	private Ingredient[] ingredients = new Ingredient[]{new Ingredient(0),new Ingredient(1),new Ingredient(2),new Ingredient(3),new Ingredient(4),new Ingredient(5)};
+	private Sushi[] sushis = new Sushi[]{new Sushi(0),new Sushi(1),new Sushi(2)};
 	
 	private static Robot r;
 	private eye cv = new eye();
@@ -54,12 +47,7 @@ public class Player {
 		
 		this.gameRegion = cv.getPlayRegion(matches);
 		this.pressStartButton();
-		
-		while(true) {
-			checkAllCustomers();
-			Thread.sleep(5000);
-			System.out.println("looking for customers");
-		}
+		this.checkAllCustomers();
 		
 	}
 	
@@ -87,7 +75,7 @@ public class Player {
 	
 	
 	private void removeAssiete(int i) throws InterruptedException {
-		cv.mouseLeftClick(this.customerPosition[i][0] + this.gameRegion.x + 41, this.customerPosition[i][1] + this.gameRegion.y + 47);
+		cv.mouseLeftClick(this.customers[i].position[0] + this.gameRegion.x + 41, this.customers[i].position[1]  + this.gameRegion.y + 47);
 		Thread.sleep(1000);
 	}
 	
@@ -97,10 +85,15 @@ public class Player {
 		// (int) refIngredient : contient la référence de l'ingrédient en cours
 		
 		int refIngredient = 0;
-		for(int nbr : this.sushiRecipe[sushiType]) {
+		
+		// On s'occupe du stock tkt.
+		handleStock(sushiType);
+		
+		for(int nbr : this.sushis[sushiType].Recipe) {
 			int s = 0;
 			while(s < nbr) {
-				cv.mouseLeftClick(this.sushiPosition[refIngredient][0] + this.gameRegion.x, this.sushiPosition[refIngredient][1] + this.gameRegion.y);
+				this.ingredients[refIngredient].stock--;
+				cv.mouseLeftClick(this.ingredients[refIngredient].position_recette[0] + this.gameRegion.x, this.ingredients[refIngredient].position_recette[1]  + this.gameRegion.y);
 				Thread.sleep(500);
 				
 				s++;
@@ -121,7 +114,7 @@ public class Player {
 		ArrayList<Integer> need = new ArrayList<Integer>();
 		
 		for(int i = 0;i<6;i++) {
-			if(this.stocks[i] < this.sushiRecipe[recipe][i]) {
+			if(this.ingredients[i].stock < this.sushis[recipe].Recipe[i]) {
 				need.add(i);
 			}
 		}
@@ -130,56 +123,66 @@ public class Player {
 	}
 	
 	private void handleStock(int i) throws InterruptedException {
-		ArrayList<Integer >need = this.checkStock(i);
+		ArrayList<Integer>need = this.checkStock(i);
 			if(need.size() > 0 ) {
 				for (int j = 0; j < need.size(); j++) {
 					int ingredient = need.get(j);
-					
 					this.replenish(ingredient);
+					this.ingredients[ingredient].stock += this.ingredients[ingredient].replenishes;
 				}
 				
 				Thread.sleep(7000);
 			}
 		}
 	
-	private void replenish(int i) {
+	private void replenish(int i) throws InterruptedException {
 		// Telephone : 590, 355;
-		// Toppings : 590,275;
-		// Rice : 590, 295;
-		// Gros bouton riz : 542,275;
+		// Click sur le téléphone
+		cv.mouseLeftClick(this.gameRegion.x+590, this.gameRegion.y+355);
 		
+		// Selection Rice/Topping
+			if(i == 1) cv.mouseLeftClick(this.gameRegion.x+500, this.gameRegion.y+290);
+			else cv.mouseLeftClick(this.gameRegion.x+500, this.gameRegion.y+270);
+		
+		// Click sur le gérondif
+		cv.mouseLeftClick(this.gameRegion.x + this.ingredients[i].position_commande[0], this.gameRegion.y+275+ this.ingredients[i].position_commande[1]);
+		
+		// Commande normale svpliz.
+		cv.mouseLeftClick(this.gameRegion.x+495, this.gameRegion.y+295);
+ 
 		
 	}
 	
 	private void checkAllCustomers() throws IOException, InterruptedException {
+		
 		for(int i=0;i<6;i++) {
-			if(this.previousState[i] < 2) {
+			if(this.customers[i].previous_state < 2) {
 				if(checkACustomer(i)) {
 					// On regarde si le client i a un sushi
 					int sushiType = checkSushi(i); 
 					
 					if(sushiType > -1) {
 						// Monsieur a un sushi
-						if(this.previousState[i] == 0) {
+						if(this.customers[i].previous_state == 0) {
 							
 							// Monsieur n'avait pas de commande, on va donc lui faire son petit sushi
 							this.MakeSushi(sushiType);
-							this.hasBeenWaiting[i] = 0;
-							this.previousState[i] = 1;
+							this.customers[i].hasbeen_waiting = 0;
+							this.customers[i].previous_state = 1;
 						}
 						else {
 							// Monsieur avait déjà une commande, on wait pour voir si elle arrive oupa.
-							this.hasBeenWaiting[i]++;
+							this.customers[i].hasbeen_waiting++;
 							
 							// Si ça fait longtemps qu'il attend, on le remet sur la liste.
-							if(this.hasBeenWaiting[i] >= 2) {
-								this.previousState[i] = 0;
+							if(this.customers[i].hasbeen_waiting >= 2) {
+								this.customers[i].previous_state = 0;
 							}
 						}
 					}
 					else {
 						// Monsieur n'a pas demandé de sushi
-						this.previousState[i] = 2;
+						this.customers[i].previous_state = 2;
 					}
 				}
 			}
@@ -187,18 +190,22 @@ public class Player {
 				// Le type a passé commande et l'a reçu, on check si on peut virer l'assiète
 				if(!checkACustomer(i)) {
 					this.removeAssiete(i);
-					this.previousState[i] = 0;
+					this.customers[i].previous_state = 0;
 				}
 			}
 
 		}
+
+		 Thread.sleep(1000);
+	     System.out.println("looking for customers");
+		 this.checkAllCustomers();
 	}
 	
 	private int checkSushi(int nbC) throws IOException {
 		int sushiType = -1;
 		
-			int x = this.gameRegion.x + this.customerPosition[nbC][0];
-			int y = this.gameRegion.y + this.customerPosition[nbC][1] - 105;
+			int x = this.gameRegion.x + this.customers[nbC].position[0];
+			int y = this.gameRegion.y + this.customers[nbC].position[1] - 105;
 			
 			BufferedImage screenshot = cv.takeRegion(new Rectangle(x,y,35,45));
 			
@@ -224,8 +231,8 @@ public class Player {
 	private boolean checkACustomer(int nbC) throws IOException {
 		boolean isThere = true;
 		
-		int x =  this.gameRegion.x + this.customerPosition[nbC][0];
-		int y =  this.gameRegion.y + this.customerPosition[nbC][1];		
+		int x =  this.gameRegion.x + this.customers[nbC].position[0];
+		int y =  this.gameRegion.y + this.customers[nbC].position[1];		
 		
 		BufferedImage screenshot = cv.takeRegion(new Rectangle(x,y,5,40));
 		BufferedImage empty_seat = ImageIO.read(new File("img/empty_seat.png"));
