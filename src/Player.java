@@ -19,7 +19,7 @@ public class Player {
 	
 	private Customer[] customers = new Customer[]{new Customer(0),new Customer(1),new Customer(2),new Customer(3),new Customer(4),new Customer(5)};
 	private Ingredient[] ingredients = new Ingredient[]{new Ingredient(0),new Ingredient(1),new Ingredient(2),new Ingredient(3),new Ingredient(4),new Ingredient(5)};
-	private Sushi[] sushis = new Sushi[]{new Sushi(0),new Sushi(1),new Sushi(2)};
+	private Sushi[] sushis = new Sushi[]{new Sushi(0),new Sushi(1),new Sushi(2),new Sushi(3)};
 	
 	private static Robot r;
 	private eye cv = new eye();
@@ -76,7 +76,6 @@ public class Player {
 	
 	private void removeAssiete(int i) throws InterruptedException {
 		cv.mouseLeftClick(this.customers[i].position[0] + this.gameRegion.x + 41, this.customers[i].position[1]  + this.gameRegion.y + 47);
-		Thread.sleep(1000);
 	}
 	
 	private void MakeSushi(int sushiType) throws InterruptedException {
@@ -94,7 +93,7 @@ public class Player {
 			while(s < nbr) {
 				this.ingredients[refIngredient].stock--;
 				cv.mouseLeftClick(this.ingredients[refIngredient].position_recette[0] + this.gameRegion.x, this.ingredients[refIngredient].position_recette[1]  + this.gameRegion.y);
-				Thread.sleep(500);
+				Thread.sleep(200);
 				
 				s++;
 			}
@@ -104,9 +103,8 @@ public class Player {
 		}
 		
 		// Puis Validation
-		Thread.sleep(1000);
 		cv.mouseLeftClick(this.gameRegion.x+210, 384 + this.gameRegion.y);
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 	}
 	
 	private ArrayList<Integer> checkStock(int recipe) {
@@ -145,7 +143,7 @@ public class Player {
 			else cv.mouseLeftClick(this.gameRegion.x+500, this.gameRegion.y+270);
 		
 		// Click sur le gérondif
-		cv.mouseLeftClick(this.gameRegion.x + this.ingredients[i].position_commande[0], this.gameRegion.y+275+ this.ingredients[i].position_commande[1]);
+		cv.mouseLeftClick(this.gameRegion.x + this.ingredients[i].position_commande[0], this.gameRegion.y+ this.ingredients[i].position_commande[1]);
 		
 		// Commande normale svpliz.
 		cv.mouseLeftClick(this.gameRegion.x+495, this.gameRegion.y+295);
@@ -166,16 +164,16 @@ public class Player {
 						if(this.customers[i].previous_state == 0) {
 							
 							// Monsieur n'avait pas de commande, on va donc lui faire son petit sushi
-							this.MakeSushi(sushiType);
 							this.customers[i].hasbeen_waiting = 0;
 							this.customers[i].previous_state = 1;
+							this.MakeSushi(sushiType);
 						}
 						else {
 							// Monsieur avait déjà une commande, on wait pour voir si elle arrive oupa.
 							this.customers[i].hasbeen_waiting++;
 							
 							// Si ça fait longtemps qu'il attend, on le remet sur la liste.
-							if(this.customers[i].hasbeen_waiting >= 2) {
+							if(this.customers[i].hasbeen_waiting > 20) {
 								this.customers[i].previous_state = 0;
 							}
 						}
@@ -186,19 +184,32 @@ public class Player {
 					}
 				}
 			}
-			else {
 				// Le type a passé commande et l'a reçu, on check si on peut virer l'assiète
 				if(!checkACustomer(i)) {
 					this.removeAssiete(i);
 					this.customers[i].previous_state = 0;
 				}
-			}
 
 		}
 
-		 Thread.sleep(1000);
 	     System.out.println("looking for customers");
-		 this.checkAllCustomers();
+		
+	     
+
+		BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x +190,this.gameRegion.y+ 110,300,30));
+		BufferedImage win = ImageIO.read(new File("img/win.png"));
+		
+
+		int[] matches = cv.findsubImage(win,screenshot);
+		if(matches[0] != -1){
+			cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
+			cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
+		}
+			
+	     
+	     
+	     
+	     this.checkAllCustomers();
 	}
 	
 	private int checkSushi(int nbC) throws IOException {
@@ -212,6 +223,7 @@ public class Player {
 			BufferedImage sushi_one = ImageIO.read(new File("img/sushis/onigiri.png"));
 			BufferedImage sushi_two = ImageIO.read(new File("img/sushis/california.png"));
 			BufferedImage sushi_three = ImageIO.read(new File("img/sushis/gunkan.png"));
+			BufferedImage sushi_four = ImageIO.read(new File("img/sushis/sroll.png"));
 			
 
 			int[] matches = cv.findsubImage(sushi_one,screenshot);
@@ -222,6 +234,10 @@ public class Player {
 				else {
 					matches = cv.findsubImage(sushi_three,screenshot);
 					if(matches[0] != -1) {sushiType = 2;}
+					else {
+						matches = cv.findsubImage(sushi_four,screenshot);
+						if(matches[0] != 1) sushiType = 3;
+					}
 				}
 			}
 			
