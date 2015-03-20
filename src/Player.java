@@ -75,11 +75,38 @@ public class Player {
 	}
 	
 	
+	private void checkLevelUp() throws IOException, InterruptedException {
+			BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x +190,this.gameRegion.y+100,300,100));
+			BufferedImage win = ImageIO.read(new File("img/win.png"));
+			
+
+			int[] matches = cv.findsubImage(win,screenshot);
+			if(matches[0] != -1){
+				doLevelUp();
+			}
+				
+	}
+	
+	private void doLevelUp() throws InterruptedException {
+		
+		// Click sur win
+		cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
+		cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
+		
+		// Suivi niveau
+		this.level++;
+		
+		// Remise à zéro des ingrédients
+		for(int i=0;i<5;i++) {
+			ingredients[i].stock = ingredients[i].replenishes;
+		}
+	}
+	
 	private void removeAssiete(int i) throws InterruptedException {
 		cv.mouseLeftClick(this.customers[i].position[0] + this.gameRegion.x + 41, this.customers[i].position[1]  + this.gameRegion.y + 47);
 	}
 	
-	private void MakeSushi(int sushiType) throws InterruptedException {
+	private void MakeSushi(int sushiType) throws InterruptedException, IOException {
 		// Pour chaque ingrédient
 		// (int) nbr  : contient le nombre 
 		// (int) refIngredient : contient la référence de l'ingrédient en cours
@@ -121,11 +148,17 @@ public class Player {
 		return need;
 	}
 	
-	private void handleStock(int i) throws InterruptedException {
+	private void handleStock(int i) throws InterruptedException, IOException {
 		ArrayList<Integer>need = this.checkStock(i);
 			if(need.size() > 0 ) {
+				
 				for (int j = 0; j < need.size(); j++) {
 					int ingredient = need.get(j);
+					
+					while(checkMoney() < 50) {
+						checkMoney();
+					}
+					
 					this.replenish(ingredient);
 					this.ingredients[ingredient].stock += this.ingredients[ingredient].replenishes;
 				}
@@ -171,7 +204,7 @@ public class Player {
 						}
 						else {							
 							// Si ça fait longtemps qu'il attend, on le remet sur la liste.
-							if( (System.currentTimeMillis()/1000)-35 >= this.customers[i].hasbeen_waiting) {
+							if( (System.currentTimeMillis()/1000)-25 >= this.customers[i].hasbeen_waiting) {
 								this.customers[i].previous_state = 0;
 							}
 						}
@@ -189,26 +222,28 @@ public class Player {
 				}
 
 		}
-
-	     System.out.println("looking for customers");
+		checkLevelUp();
 		
-	     
+		System.out.println("looking for customers"); 
+	    this.checkAllCustomers();
+	}
 
-		BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x +190,this.gameRegion.y+100,300,100));
-		BufferedImage win = ImageIO.read(new File("img/win.png"));
+	private int checkMoney() throws IOException {
 		
+		int x = this.gameRegion.x + 247;
+		int y = this.gameRegion.y + 10;
+		
+		BufferedImage screenshot = cv.takeRegion(new Rectangle(x,y,20,20));
+		BufferedImage zero = ImageIO.read(new File("img/zero.png"));
 
-		int[] matches = cv.findsubImage(win,screenshot);
-		if(matches[0] != -1){
-			cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
-			cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
-			this.level++;
+		int[] matches = cv.findsubImage(zero,screenshot);
+		if(matches[0] != -1) {
+			// On est toujours à <100
+			return 0;
 		}
-			
-	     
-	     
-	     
-	     this.checkAllCustomers();
+		else {
+			return 100;
+		}	
 	}
 	
 	private int checkSushi(int nbC) throws IOException {
@@ -217,7 +252,7 @@ public class Player {
 			int x = this.gameRegion.x + this.customers[nbC].position[0];
 			int y = this.gameRegion.y + this.customers[nbC].position[1] - 105;
 			
-			BufferedImage screenshot = cv.takeRegion(new Rectangle(x,y,50,50));
+			BufferedImage screenshot = cv.takeRegion(new Rectangle(x,y,70,70));
 			
 			BufferedImage sushi_one = ImageIO.read(new File("img/sushis/onigiri.png"));
 			BufferedImage sushi_two = ImageIO.read(new File("img/sushis/california.png"));

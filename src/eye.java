@@ -159,6 +159,8 @@ public class eye {
 	public void mouseLeftClick(int x,int y) throws InterruptedException {
 		r.mouseMove(x, y);
 		Thread.sleep(50);
+		r.mouseMove(x+2, y+2);
+		Thread.sleep(50);
 		int button = InputEvent.getMaskForButton(1);
 		r.mousePress(button);
 		Thread.sleep(50);
