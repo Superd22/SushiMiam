@@ -17,9 +17,12 @@ public class Player {
 	private Rectangle gameRegion;
 	private int[] matches;
 	
+	private int level = 0;
+	
 	private Customer[] customers = new Customer[]{new Customer(0),new Customer(1),new Customer(2),new Customer(3),new Customer(4),new Customer(5)};
 	private Ingredient[] ingredients = new Ingredient[]{new Ingredient(0),new Ingredient(1),new Ingredient(2),new Ingredient(3),new Ingredient(4),new Ingredient(5)};
 	private Sushi[] sushis = new Sushi[]{new Sushi(0),new Sushi(1),new Sushi(2),new Sushi(3)};
+	private ArrayList<Commande> commandes = new ArrayList<Commande>();
 	
 	private static Robot r;
 	private eye cv = new eye();
@@ -33,10 +36,8 @@ public class Player {
 	Player() throws Exception {
 	
 		while(!is_game_launched) {
-
 			BufferedImage screenshot = cv.takescreen();
 			BufferedImage main_logo = ImageIO.read(new File("img/main_title.png"));
-			
 
 			 matches = cv.findsubImage(main_logo,screenshot);
 			if(matches[0] != -1) {		System.out.println("vu"); is_game_launched=true;}
@@ -104,7 +105,7 @@ public class Player {
 		
 		// Puis Validation
 		cv.mouseLeftClick(this.gameRegion.x+210, 384 + this.gameRegion.y);
-		Thread.sleep(1000);
+		Thread.sleep(800);
 	}
 	
 	private ArrayList<Integer> checkStock(int recipe) {
@@ -164,16 +165,13 @@ public class Player {
 						if(this.customers[i].previous_state == 0) {
 							
 							// Monsieur n'avait pas de commande, on va donc lui faire son petit sushi
-							this.customers[i].hasbeen_waiting = 0;
+							this.customers[i].hasbeen_waiting = System.currentTimeMillis()/1000;
 							this.customers[i].previous_state = 1;
 							this.MakeSushi(sushiType);
 						}
-						else {
-							// Monsieur avait déjà une commande, on wait pour voir si elle arrive oupa.
-							this.customers[i].hasbeen_waiting++;
-							
+						else {							
 							// Si ça fait longtemps qu'il attend, on le remet sur la liste.
-							if(this.customers[i].hasbeen_waiting > 20) {
+							if( (System.currentTimeMillis()/1000)-35 >= this.customers[i].hasbeen_waiting) {
 								this.customers[i].previous_state = 0;
 							}
 						}
@@ -196,7 +194,7 @@ public class Player {
 		
 	     
 
-		BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x +190,this.gameRegion.y+ 110,300,30));
+		BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x +190,this.gameRegion.y+100,300,100));
 		BufferedImage win = ImageIO.read(new File("img/win.png"));
 		
 
@@ -204,6 +202,7 @@ public class Player {
 		if(matches[0] != -1){
 			cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
 			cv.mouseLeftClick(this.gameRegion.x+320, this.gameRegion.y+370);
+			this.level++;
 		}
 			
 	     
@@ -218,7 +217,7 @@ public class Player {
 			int x = this.gameRegion.x + this.customers[nbC].position[0];
 			int y = this.gameRegion.y + this.customers[nbC].position[1] - 105;
 			
-			BufferedImage screenshot = cv.takeRegion(new Rectangle(x,y,35,45));
+			BufferedImage screenshot = cv.takeRegion(new Rectangle(x,y,50,50));
 			
 			BufferedImage sushi_one = ImageIO.read(new File("img/sushis/onigiri.png"));
 			BufferedImage sushi_two = ImageIO.read(new File("img/sushis/california.png"));
@@ -234,9 +233,9 @@ public class Player {
 				else {
 					matches = cv.findsubImage(sushi_three,screenshot);
 					if(matches[0] != -1) {sushiType = 2;}
-					else {
+					else if(level > 0) {
 						matches = cv.findsubImage(sushi_four,screenshot);
-						if(matches[0] != 1) sushiType = 3;
+						if(matches[0] != 1) {sushiType = 3;}
 					}
 				}
 			}

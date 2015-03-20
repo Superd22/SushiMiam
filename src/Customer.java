@@ -1,7 +1,7 @@
 public class Customer {
 	public int type;
 	public int previous_state = 0;
-	public int hasbeen_waiting = 0;
+	public long hasbeen_waiting = 0;
 	public int[] position;
 	
 		// new int[][]{{41,151},{141,151},{241,151},{341,151},{441,151},{541,151}};

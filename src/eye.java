@@ -61,9 +61,9 @@ public class eye {
 	}
 	
 	private boolean isPixelClose(Color one, Color two) {
-		if( Math.abs(one.getBlue() - two.getBlue()) < 20 &&
-			Math.abs(one.getGreen() - two.getGreen()) < 20 &&
-			Math.abs(one.getRed() - two.getRed()) < 20) return true;
+		if( Math.abs(one.getBlue() - two.getBlue()) < 2 &&
+			Math.abs(one.getGreen() - two.getGreen()) < 2 &&
+			Math.abs(one.getRed() - two.getRed()) < 2) return true;
 		else return false;
 	}
 	
@@ -77,10 +77,10 @@ public class eye {
 		int pos_in_big = 0;
 		boolean is_a_match = false;
 		boolean will_overflow = false;
+		
 		for(pos_in_big=0;pos_in_big < array_big.length-1;pos_in_big++) {
 			if(will_overflow) break;
-			//System.out.println("big");
-			//System.out.println(pos_in_big);
+
 			for(int pos_in_sub=0; pos_in_sub < (array_sub.length);pos_in_sub++) {
 				
 				// Changement de ligne dans big si besoin
@@ -119,7 +119,6 @@ public class eye {
 			}
 			
 			if (is_a_match) {
-				System.out.println("break match");
 				break;
 			}
 			
@@ -149,13 +148,9 @@ public class eye {
 	}
 	
 	public Rectangle getPlayRegion(int[] cords) {
-		// cords contient les coordonées du main_logo
-		
-		// Aprés mesure on a :
 		int left_x_decal = -121;
 		int left_y_decal = -55;
 		
-		// d'où :
 		Rectangle gameRegion = new Rectangle( cords[0]+left_x_decal,cords[1]+left_y_decal, 640, 480);
 		
 		return gameRegion;
