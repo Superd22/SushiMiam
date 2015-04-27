@@ -25,6 +25,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+/**
+ * SushiMiam
+ * eye.java
+ * Rassemble l'ensemble des fonctions "robots" du code, d'action et de prise d'analyse d'image.
+ *
+ * @author David Fain
+ * @version 1.0 27/04/2015
+ */
+
+
 public class eye {
 	
 	private static Robot r;

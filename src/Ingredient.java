@@ -1,3 +1,14 @@
+/**
+ * SushiMiam
+ * Ingredient.java
+ * Enumères les différents Ingrédients disponibles.
+ *
+ * @author David Fain
+ * @version 1.0 27/04/2015
+ */
+
+
+
 public class Ingredient {
 	public int type;
 	public int stock;
@@ -63,6 +74,7 @@ public class Ingredient {
 		}
 		
 	}
+	
 	
 	
 }

@@ -6,6 +6,16 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
+/**
+ * SushiMiam
+ * main.java
+ * Lance une partie.
+ *
+ * @author David Fain
+ * @version 1.0 27/04/2015
+ */
+
+
 public class main {
 	
 

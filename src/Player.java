@@ -9,6 +9,14 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+/**
+ * SushiMiam
+ * Player.java
+ * Gère l'ensemble du jeu, "relie" les différentes classes en un tout cohérent.
+ *
+ * @author David Fain
+ * @version 1.0 27/04/2015
+ */
 
 public class Player {
 	
@@ -22,16 +30,10 @@ public class Player {
 	private Customer[] customers = new Customer[]{new Customer(0),new Customer(1),new Customer(2),new Customer(3),new Customer(4),new Customer(5)};
 	private Ingredient[] ingredients = new Ingredient[]{new Ingredient(0),new Ingredient(1),new Ingredient(2),new Ingredient(3),new Ingredient(4),new Ingredient(5), new Ingredient(6)};
 	private Sushi[] sushis = new Sushi[]{new Sushi(0),new Sushi(1),new Sushi(2),new Sushi(3),new Sushi(4),new Sushi(5),new Sushi(6),new Sushi(7)};
-	private ArrayList<Commande> commandes = new ArrayList<Commande>();
 	
-	private static Robot r;
 	private eye cv = new eye();
 	
-	static {
-	    try {
-	        r = new Robot();
-	    } catch(AWTException e){e.printStackTrace();}
-	}
+
 	
 	Player() throws Exception {
 	
@@ -52,6 +54,11 @@ public class Player {
 		
 	}
 	
+	
+	/**
+	 * Click sur les boutons de départ pour lancer la partie.
+	 *
+	 */
 	private void pressStartButton() throws Exception {
 		// Hard coded positions
 		int getX = this.gameRegion.x;
@@ -75,6 +82,10 @@ public class Player {
 	}
 	
 	
+	/**
+	 * Verifie a la fin d'un tour si on a gagné un niveau.
+	 *
+	 */
 	private void checkLevelUp() throws IOException, InterruptedException {
 			BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x +190,this.gameRegion.y+100,300,100));
 			BufferedImage win = ImageIO.read(new File("img/win.png"));
@@ -87,6 +98,11 @@ public class Player {
 				
 	}
 	
+	
+	/**
+	 * Performe les actions de level-up 
+	 * (Click sur le bouton, remises à zero des stocks et incrémentage compteur de lvl)
+	 */
 	private void doLevelUp() throws InterruptedException {
 		
 		// Click sur win
@@ -102,10 +118,21 @@ public class Player {
 		}
 	}
 	
+	
+	/**
+	 * Click sur la position d'une assiète donnée.
+	 * 
+	 *@param i L'index d'une assiète (entre 0 et 5)
+	 */
 	private void removeAssiete(int i) throws InterruptedException {
 		cv.mouseLeftClick(this.customers[i].position[0] + this.gameRegion.x + 41, this.customers[i].position[1]  + this.gameRegion.y + 47);
 	}
 	
+	
+	/**
+	 * Crée de A à Z un Sushi donné
+	 * @param sushiType le type de sushi que l'on souhaite produire.
+	 */
 	private void MakeSushi(int sushiType) throws Exception {
 		// Pour chaque ingrédient
 		// (int) nbr  : contient le nombre 
@@ -138,6 +165,12 @@ public class Player {
 		Thread.sleep(800);
 	}
 	
+	
+	/**
+	 * Renvoie la liste de tous les ingrédients qu'ils faut acheter pour continuer.
+	 * @param recipe le type de sushi que l'on souhaite produire.
+	 * @return une ArrayList contenant les types d'ingrèdients à acheter.
+	 */
 	private ArrayList<Integer> checkStock(int recipe) {
 		
 		ArrayList<Integer> need = new ArrayList<Integer>();
@@ -157,6 +190,11 @@ public class Player {
 		return need;
 	}
 	
+	
+	/**
+	 * S'assure que les stocks sont adéquats pour faire un sushi donné
+	 * @param i le type de sushi que l'on souhaite produire.
+	 */
 	private void handleStock(int i) throws Exception {
 		ArrayList<Integer>need = this.checkStock(i);
 			if(need.size() > 0 ) {
@@ -173,7 +211,10 @@ public class Player {
 		}
 	
 	
-	
+	/**
+	 * Achète un type d'ingrédient
+	 * @param i le type d'ingrédient que l'on souhaite acheter.
+	 */
 	private void replenish(int i) throws Exception {
 		// Telephone : 590, 355;
 		// Click sur le téléphone
@@ -187,6 +228,11 @@ public class Player {
 	}
 	
 	
+	/**
+	 * Pour un type d'ingrédient, attends que les fonds suffisant soit reunies
+	 * et le cas échéant, effectue l'achat.
+	 * @param i le type d'ingrédient que l'on souhaite acheter.
+	 */
 	private void recCheckStock(int i) throws Exception {
 		Thread.sleep(200);
 		if(canActuallyPurchase(i)) {
@@ -204,6 +250,12 @@ public class Player {
 			recCheckStock(i);
 		}
 	}
+	
+	
+	/**
+	 * Pour un type d'ingrédient, verifie si le bouton d'achat est grisé ou non.
+	 * @param i le type d'ingrédient que l'on souhaite acheter.
+	 */
 	private boolean canActuallyPurchase(int i) throws IOException {		
 		BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x,this.gameRegion.y,640,480));
 		BufferedImage sprite = ImageIO.read(new File(this.ingredients[i].sprite));		
@@ -216,6 +268,11 @@ public class Player {
 		
 	}
 	
+	
+	/**
+	 * Passe en revue chaque Customers et effectue les opérations adéquates.
+	 * 
+	 */
 	private void checkAllCustomers() throws Exception {
 		
 		for(int i=0;i<6;i++) {
@@ -272,6 +329,11 @@ public class Player {
 	    checkAllCustomers();
 	}
 	
+	
+	/**
+	 * Donne du Saké a un Customer
+	 * @param i l'index du Customer.
+	 */
 	private void giveSake(int i) throws Exception {
 		// Donc on veut donner du saké à mamie.
 		// First on doit trouver la bouteille.
@@ -298,6 +360,11 @@ public class Player {
 				}
 			}
 	
+	
+	/**
+	 * Verifie si le Saké est en stock.
+	 * 
+	 */
 	private void checkSake() throws Exception {
 			// Si on avait plus de Saké
 		if(ingredients[6].stock == 0) {
@@ -311,6 +378,12 @@ public class Player {
 		}
 	}
 	
+	
+	/**
+	 * Verifie si le tapis de production est en overflow ou pas
+	 * 
+	 * @return True si on peut passer à la création d'un nouveau sushi, False en cas d'overflow.
+	 */
 	private boolean overFlowSushiCheck() throws Exception {
 		BufferedImage screenshot = cv.takeRegion(new Rectangle(this.gameRegion.x,this.gameRegion.y,640,480));
 		BufferedImage empty = ImageIO.read(new File("img/empty_sushi.png"));
@@ -325,6 +398,13 @@ public class Player {
 			else return overFlowSushiCheck();
 	}
 	
+	
+	/**
+	 * Identifie la commande d'un customer donné.
+	 * 
+	 * @param nbC l'index du customer en question.
+	 * @return un Int représentant le type de Sushi demandé.
+	 */
 	private int checkSushi(int nbC) throws IOException {
 		int sushiType = -1;
 		
@@ -347,6 +427,13 @@ public class Player {
 		return sushiType;
 	}
 	
+	
+	/**
+	 * Vérifie l'état de bonheur d'un customer donné.
+	 * 
+	 * @param i L'index d'un customer
+	 * @return true si son bonheur est <= 3, false sinon.
+	 */
 	private boolean checkHappiness(int i) throws Exception {
 
 		
@@ -362,6 +449,14 @@ public class Player {
 			else return false;
 	}
 	
+	
+	
+	/**
+	 * Verifie si un customer est présent à l'emplacement donné
+	 * 
+	 * @param nbC l'emplacement à vérifier
+	 * @return True si il y a un customer, false sinon.
+	 */
 	private boolean checkACustomer(int nbC) throws IOException {
 		boolean isThere = true;
 		

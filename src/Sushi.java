@@ -1,3 +1,15 @@
+import java.util.ArrayList;
+
+/**
+ * SushiMiam
+ * Sushi.java
+ * Enumères les différents Sushi disponibles.
+ *
+ * @author David Fain
+ * @version 1.0 27/04/2015
+ */
+
+
 public class Sushi {
 	public int type;
 	public int[] Recipe;
@@ -50,38 +62,5 @@ public class Sushi {
 				this.sprite = "img/sushis/combo.png";
 		}
 	}
-	
-	
-	private void MakeSushi() throws Exception {
-		// Pour chaque ingrédient
-		// (int) nbr  : contient le nombre 
-		// (int) refIngredient : contient la référence de l'ingrédient en cours
-		
-		int refIngredient = 0;
-		
-		// On s'occupe du stock tkt.
-		handleStock(type);
-		
-		// On verifie que l'on peut envoyer un sushi.
-		if(overFlowSushiCheck()) {
-			for(int nbr : this.sushis[type].Recipe) {
-				int s = 0;
-				while(s < nbr) {
-					this.ingredients[refIngredient].stock--;
-					Thread.sleep(50);
-					cv.mouseLeftClick(this.ingredients[refIngredient].position_recette[0] + this.gameRegion.x, this.ingredients[refIngredient].position_recette[1]  + this.gameRegion.y);
-					Thread.sleep(100);
-					
-					s++;
-				}
-				
-				
-				refIngredient++;
-			}
-		}
-		// Puis Validation
-		cv.mouseLeftClick(this.gameRegion.x+210, 384 + this.gameRegion.y);
-		Thread.sleep(800);
-	}
-	
+
 }

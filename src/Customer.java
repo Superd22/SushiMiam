@@ -1,3 +1,20 @@
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+
+/**
+ * SushiMiam
+ * Sushi.java
+ * Enumères les différents Customers à servir.
+ *
+ * @author David Fain
+ * @version 1.0 27/04/2015
+ */
+
+
+
 public class Customer {
 	public int type;
 	public int previous_state = 0;
@@ -20,4 +37,5 @@ public class Customer {
 		}
 		
 	}
+
 }
