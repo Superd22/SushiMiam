@@ -61,7 +61,9 @@ public class eye {
 	}
 	
 	private boolean isPixelClose(Color one, Color two) {
-		if( Math.abs(one.getBlue() - two.getBlue()) < 2 &&
+		// Transparency via pink
+		if(two.getBlue() == 255 & two.getRed() == 255 & two.getGreen() == 0) return true;
+		else if( Math.abs(one.getBlue() - two.getBlue()) < 2 &&
 			Math.abs(one.getGreen() - two.getGreen()) < 2 &&
 			Math.abs(one.getRed() - two.getRed()) < 2) return true;
 		else return false;
@@ -167,4 +169,15 @@ public class eye {
 		r.mouseRelease(button);
 	}
 	
+	public void dragNdrop(int start_x, int start_y, int end_x, int end_y) throws InterruptedException {
+		r.mouseMove(start_x, start_y);
+		Thread.sleep(50);
+		int button = InputEvent.getMaskForButton(1);
+		r.mousePress(button);
+		Thread.sleep(50);
+		r.mouseMove(end_x, end_y);
+		Thread.sleep(50);
+		r.mouseRelease(button);
+		Thread.sleep(50);
+	}
 }
